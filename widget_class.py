@@ -74,29 +74,19 @@ def parse_int(n,name,lower=None,upper=None):
         print >> sys.stderr, "Error:", name, "must be <=", upper
         exit()
 
-def rolls(n_dice,n_faces,lower=1):
+def rolls(n_dice,upper,lower=1):
     """
     This generator returns an iterator over all
-    possible rolls of n_dice dice with n_faces
-    faces.  It returns each roll as a sorted
-    tuple of length n_dice for which each entry
-    is an integer from 1 to n_faces.  The optional
-    argument lower allows you to specify a lower
-    limit on the dice values, and is used when the
-    generator calls itself recursively.
+    possible rolls of n_dice dice, where each die
+    has the integer values from lower to upper
+    (inclusive) exactly once on different faces.
+    It returns each roll as a sorted tuple of length
+    n_dice for which each entry is an integer from
+    lower to upper.
 
-    Ex.  3 dice, 6 faces, returns
+    Ex.  3 dice, upper=6, lower=1, returns
     (1,1,1)
     (1,1,2)
-    .
-    .
-    .
-    (5,6,6)
-    (6,6,6)
-
-    3 dice, 6 faces, lower=2, returns
-    (2,2,2)
-    (2,2,3)
     .
     .
     .
@@ -106,7 +96,7 @@ def rolls(n_dice,n_faces,lower=1):
     if n_dice==0:
         yield ()
     else:
-        for first_die in range(lower,n_faces+1):
-            for rest_die in rolls(n_dice-1,n_faces,first_die):
+        for first_die in range(lower,upper+1):
+            for rest_die in rolls(n_dice-1,upper,first_die):
                 yield (first_die,)+rest_die
 
