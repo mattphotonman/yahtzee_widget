@@ -4,6 +4,7 @@ Class for Yahtzee widget, and related functions.
 """
 from numpy import *
 import sys
+from collections import Counter
 
 class Widget:
     """
@@ -77,7 +78,176 @@ class Widget:
             exit()
 
     def parse_points_str(self,points):
-        pass
+        """
+        Takes a string describing a combination, such
+        as 'yahtzee', or 'four of a kind', creates a dictionary
+        called points_dict which gives a point value of 1 to
+        rolls of that type and 0 to rolls not of that type,
+        and passes points_dict to self.parse_points_dict.
+        Can also add the word 'weighted' on the end, e.g.
+        'four of a kind weighted', to weight rolls by the actual
+        number of points you would score with that roll, rather
+        than just 1.
+        """
+        combos=['three of a kind','four of a kind','full house','small straight','large straight','yahtzee','chance','ones','twos','threes','fours','fives','sixes']
+        combos_weighted=[]
+        for combo in combos:
+            combos_weighted.append(c+' weighted')
+
+        combo=points.lower()
+
+        if combo not in combos and combo not in combos_weighted:
+            print >> sys.stderr, "Error in Widget.parse_points_str:", points, "not a valid combination.  Must be one of:"
+            for c in combos:
+                print >> sys.stderr, c, "[weighted]"
+            exit()
+
+        #Checked that combo is a valid combination, now big if
+        #statement to create points_dict for each combination.
+        points_dict={}
+        
+        if combo=='three of a kind' or combo=='three of a kind weighted':
+            for roll in rolls(self.n_dice,self.n_faces):
+                c=Counter(roll)
+                #c.most_common(1)[0] gives an order pair:
+                #(most common number,its frequency)
+                #Thus c.most_common(1)[0][1] is the frequency
+                #of the most common number.
+                if c.most_common(1)[0][1]>=3:
+                    if combo=='three of a kind':
+                        points_dict[roll]=1.
+                    else:
+                        points_dict[roll]=float(sum(roll))
+                else:
+                    point_dict[roll]=0.
+            
+        elif combo=='four of a kind' or combo=='four of a kind weighted':
+            for roll in rolls(self.n_dice,self.n_faces):
+                c=Counter(roll)
+                #c.most_common(1)[0] gives an order pair:
+                #(most common number,its frequency)
+                #Thus c.most_common(1)[0][1] is the frequency
+                #of the most common number.
+                if c.most_common(1)[0][1]>=4:
+                    if combo=='four of a kind':
+                        points_dict[roll]=1.
+                    else:
+                        points_dict[roll]=float(sum(roll))
+                else:
+                    point_dict[roll]=0.
+            
+        elif combo=='full house' or combo=='full house weighted':
+            for roll in rolls(self.n_dice,self.n_faces):
+                c=Counter(roll)
+                #For an arbitary number of dice, I define a full
+                #house to be only two different numbers appearing
+                #in the roll, and n_dice/2 of each for n_dice even,
+                #but (n_dice+1)/2 of one and (n_dice-1)/2 of the
+                #other for n_dice odd.
+                #
+                #To treat both cases at the same time, let
+                #
+                #freq1=c.most_common(2)[0][1]
+                #freq2=c.most_common(2)[1][1]
+                #
+                #i.e. freq1 and freq2 are the frequencies of the
+                #two most common numbers.  For a full house, must
+                #have freq1+freq2=n_dice, and freq1, freq2 >= n_dice/2
+                #(integer division).
+                #
+                #The case of n_dice=1 must be treated separately;
+                #for that case, everything is a full house.
+                if self.n_dice==1:
+                    points_dict[roll]=1.
+                else:
+                    freq1=c.most_common(2)[0][1]
+                    freq2=c.most_common(2)[1][1]
+                    if freq1+freq2==self.n_dice and freq1>=self.n_dice/2 and freq2>=self.n_dice/2:
+                        points_dict[roll]=1.
+                    else:
+                        points_dict[roll]=0.
+
+                if combo=='full house weighted':
+                    points_dict[roll]*=25.  #25 is the point value of any full house
+
+        elif combo=='small straight' or combo=='small straight weighted':
+            for roll in rolls(self.n_dice,self.n_faces):
+                c=Counter(roll)
+                #A small straight means that n_dice-1 of the
+                #numbers on the dice are in consecutive order,
+                #and the remaining die can show any number.
+                #We can split this into two cases:
+                #(i) the remaining die shows a number different
+                #than any of the other dice.
+                #(ii) the remaining die shows a number the
+                #same as one of the other dice.
+                #Thus we have (i) all dice show different values
+                #and (ii) two dice show the same values but all
+                #the rest are different.  Therefore, we can look at
+                #
+                #freq1=c.most_common(2)[0][1]
+                #freq2=c.most_common(2)[1][1]
+                #
+                #which are the frequencies of the most and second
+                #most common number.  If freq1>2 then we definitely
+                #can't have a small straight.  If freq1=2 then we
+                #can use the fact that roll is sorted and test for
+                #case (ii) by checking if roll[-1]-roll[0]=n_dice-2.
+                #If freq1=1 then we can check for case(i) checking if
+                #roll[-2]-roll[0]=n_dice-2 or roll[-1]-roll[1]=n_dice-2.
+                #
+                #n_dice<=2 must be treated separately; in this case
+                #everything is a small straight.
+                if self.n_dice<=2:
+                    points_dict[roll]=1.
+                else:
+                    freq1=c.most_common(2)[0][1]
+                    freq2=c.most_common(2)[1][1]
+                    if freq1>2:
+                        points_dict[roll]=0.
+                    elif freq1==2:
+                        if roll[-1]-roll[0]==self.n_dice-2:
+                            points_dict[roll]=1.
+                        else:
+                            points_dict[roll]=0.
+                    else:
+                        if roll[-2]-roll[0]==self.n_dice-2 or roll[-1]-roll[1]==self.n_dice-2:
+                            points_dict[roll]=1.
+                        else:
+                            points_dict[roll]=0.
+                
+                if combo=='small straight weighted':
+                    points_dict[roll]*=30.  #30 is the point value of any small straight
+
+        elif combo=='large straight' or combo=='large straight weighted':
+            for roll in rolls(self.n_dice,self.n_faces):
+                c=Counter(roll)
+                #A large straight is when all dice show numbers
+                #in consecutive order.  Since roll is sorted, can
+                #test for this by checking that all numbers in
+                #the roll are different (c.most_common(1)[0][1]=1),
+                #and that roll[-1]-roll[0]=n_dice-1.
+                if c.most_common(1)[0][1]==1 and roll[-1]-roll[0]==self.n_dice-1:
+                    points_dict[roll]=1.
+                else:
+                    points_dict[roll]=0.
+
+                if combo=='large straight weighted':
+                    points_dict[roll]*=40.  #40 is the point value of any large straight
+
+        elif combo=='yahtzee' or combo=='yahtzee weighted':
+            for roll in rolls(self.n_dice,self.n_faces):
+                c=Counter(roll)
+                if c.most_common(1)[0][1]==self.n_dice:
+                    points_dict[roll]=1.
+                else:
+                    points_dict[roll]=0.
+
+                if combo=='yahtzee weighted':
+                    points_dict[roll]*=50.  #50 is the point value of any yahtzee
+                
+
+                    
 
     def parse_points_dict(self,points):
         """
@@ -135,7 +305,6 @@ class Widget:
             if roll not in self.values[-1].keys():
                 self.values[-1][roll]=0.
 
-    
 
 def parse_int(n,name,lower=None,upper=None):
     """
