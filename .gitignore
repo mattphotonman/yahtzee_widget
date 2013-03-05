@@ -1,3 +1,6 @@
+# My ignores
+*~
+
 *.py[cod]
 
 # C extensions
