@@ -60,11 +60,13 @@ class Widget:
         #that tell which numbers to keep (and not re-roll)
         #for each possible roll on that turn.  Thus the keys
         #of the dictionaries are sorted tuples representing
-        #the rolls, and the values are sorted tuples of a
-        #subset of the integers in the roll, which are the
-        #numbers to be kept and not re-rolled.  For now,
-        #initialize self.strategy to a list of n_rolls-1
-        #empty dictionaries.
+        #the rolls, and the values are lists of sorted tuples
+        #of a subset of the integers in the roll, which are the
+        #numbers to be kept and not re-rolled.  The values are
+        #lists of tuples because there may be more than one
+        #optimal choice of numbers to keep, and the list will
+        #contain them all.  For now, initialize self.strategy
+        #to a list of n_rolls-1 empty dictionaries.
         self.strategy=[]
         for i in range(self.n_rolls-1):
             self.strategy.append({})
@@ -76,6 +78,9 @@ class Widget:
         else:
             print >> sys.stderr, "Error in Widget.__init__: points must be a string or dictionary."
             exit()
+
+        #Compute the optimal strategy and expected scores.
+        self.compute_strategy()
 
     def parse_points_str(self,points):
         """
@@ -92,7 +97,12 @@ class Widget:
         combos=['three of a kind','four of a kind','full house','small straight','large straight','yahtzee','chance','ones','twos','threes','fours','fives','sixes']
         combos_weighted=[]
         for combo in combos:
-            combos_weighted.append(c+' weighted')
+            combos_weighted.append(combo+' weighted')
+
+        numbers=['ones','twos','threes','fours','fives','sixes']
+        numbers_weighted=[]
+        for combo in numbers:
+            numbers_weighted.append(combo+' weighted')
 
         combo=points.lower()
 
@@ -105,7 +115,8 @@ class Widget:
         #Checked that combo is a valid combination, now big if
         #statement to create points_dict for each combination.
         points_dict={}
-        
+
+        #-----------------------------------------------------
         if combo=='three of a kind' or combo=='three of a kind weighted':
             for roll in rolls(self.n_dice,self.n_faces):
                 c=Counter(roll)
@@ -160,8 +171,12 @@ class Widget:
                 if self.n_dice==1:
                     points_dict[roll]=1.
                 else:
-                    freq1=c.most_common(2)[0][1]
-                    freq2=c.most_common(2)[1][1]
+                    mc=c.most_common(2)
+                    freq1=mc[0][1]
+                    if len(mc)<2:
+                        freq2=0
+                    else:
+                        freq2=mc[1][1]
                     if freq1+freq2==self.n_dice and freq1>=self.n_dice/2 and freq2>=self.n_dice/2:
                         points_dict[roll]=1.
                     else:
@@ -201,8 +216,12 @@ class Widget:
                 if self.n_dice<=2:
                     points_dict[roll]=1.
                 else:
-                    freq1=c.most_common(2)[0][1]
-                    freq2=c.most_common(2)[1][1]
+                    mc=c.most_common(2)
+                    freq1=mc[0][1]
+                    if len(mc)<2:
+                        freq2=0
+                    else:
+                        freq2=mc[1][1]
                     if freq1>2:
                         points_dict[roll]=0.
                     elif freq1==2:
@@ -245,9 +264,34 @@ class Widget:
 
                 if combo=='yahtzee weighted':
                     points_dict[roll]*=50.  #50 is the point value of any yahtzee
-                
 
-                    
+        elif combo=='chance' or combo=='chance weighted':
+            for roll in rolls(self.n_dice,self.n_faces):
+                if combo=='chance':
+                    points_dict[roll]=1.
+                else:
+                    points_dict[roll]=float(sum(roll))
+
+        elif combo in numbers or combo in numbers_weighted:
+            if combo in numbers:
+                num=numbers.index(combo)+1
+            else:
+                num=numbers_weighted.index(combo)+1
+            for roll in rolls(self.n_dice,self.n_faces):
+                c=Counter(roll)
+                if combo in numbers:
+                    if c[num]>0:
+                        points_dict[roll]=1.
+                    else:
+                        points_dict[roll]=0.
+                else:
+                    points_dict[roll]=float(c[num]*num)
+
+        #-----------------------------------------------------
+        #Big if statement to create points_dict for each
+        #combination is finished.  Now pass points_dict
+        #to self.parse_points_dict.
+        self.parse_points_dict(points_dict)
 
     def parse_points_dict(self,points):
         """
@@ -304,6 +348,9 @@ class Widget:
         for roll in rolls(self.n_dice,self.n_faces):
             if roll not in self.values[-1].keys():
                 self.values[-1][roll]=0.
+
+    def compute_strategy(self):
+        pass
 
 
 def parse_int(n,name,lower=None,upper=None):
