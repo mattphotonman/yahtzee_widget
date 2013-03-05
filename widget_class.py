@@ -3,6 +3,7 @@
 Class for Yahtzee widget, and related functions.
 """
 from numpy import *
+import sys
 
 class Widget:
     """
@@ -36,9 +37,33 @@ class Widget:
         self.n_faces=parse_int(n_faces,"n_faces",1)
         self.n_rolls=parse_int(n_rolls,"n_rolls",1)
 
+        #self.values is a list of n_rolls dictionaries.
+        #The elements of the list correspond to successive
+        #rolls, and they are dictionaries giving the
+        #expected number of points for each roll at that
+        #turn.self.values[-1] is therefore the dictionary
+        #input by the user via the "points" argument to
+        #__init__, specifying the point values of each
+        #possible roll after the last turn.  The keys of
+        #the dictionaries are rolls, which are represented
+        #by sorted tuples of integers.  For now,
+        #initialize self.values to a list of n_rolls
+        #empty dictionaries.
         self.values=[]
         for i in range(self.n_rolls):
             self.values.append({})
+
+        #self.strategy is a list of n_rolls-1 dictionaries.
+        #The elements of list correspond to successive rolls
+        #(except the last one), and they are dictionaries
+        #that tell which numbers to keep (and not re-roll)
+        #for each possible roll on that turn.  Thus the keys
+        #of the dictionaries are sorted tuples representing
+        #the rolls, and the values are sorted tuples of a
+        #subset of the integers in the roll, which are the
+        #numbers to be kept and not re-rolled.  For now,
+        #initialize self.strategy to a list of n_rolls-1
+        #empty dictionaries.
         self.strategy=[]
         for i in range(self.n_rolls-1):
             self.strategy.append({})
@@ -52,8 +77,65 @@ class Widget:
             exit()
 
     def parse_points_str(self,points):
-        self.points=[]
         pass
+
+    def parse_points_dict(self,points):
+        """
+        Uses the dictionary points to initialize
+        self.values[-1].  Checks that the keys
+        of points correspond to unique rolls
+        before copying to self.values[-1].
+        """
+
+        #Clear self.values[-1]
+        self.values[-1]={}
+
+        #Run through the key, value pairs of points, check that
+        #the keys are valid rolls, then add the key, value pair
+        #to self.values[-1].
+        for key, value in points.iteritems():
+            
+            if type(key)!=tuple:
+                print >> sys.stderr, "Error in Widget.parse_points_dict: keys in points dictionary must be tuples."
+                exit()
+
+            if len(key)!=self.n_dice:
+                print >> sys.stderr, "Error in Widget.parse_points_dict: keys in points must be tuples of length", self.n_dice
+                exit()
+
+            #Check that each element of the tuple representing the roll
+            #is an integer between 1 and self.n_faces.
+            for i in key:
+                if i<1 or i>self.n_faces:
+                    print >> sys.stderr, "Error in Widget.parse_points_dict: numbers in rolls must be between 1 and", self.n_faces
+                    exit()
+                if type(i)!=int:
+                    print >> sys.stderr, "Error in Widget.parse_points_dict: numbers in rolls must be integers."
+                    exit()
+
+            #key is a valid tuple representing a roll if you get
+            #to this point, however, we only want to deal with sorted
+            #tuples as rolls.
+            roll=tuple(sort(key))
+
+            #If this roll already has a point value assigned to it
+            #in self.values[-1], different than that of "value",
+            #then this is an error.
+            if roll in self.values[-1].keys() and self.values[-1][roll]!=value:
+                print >> sys.stderr, "Error in Widget.parse_points_dict: multiple, inconsistent point values given for roll", roll
+                exit()
+            #Otherwise we can assign a point value of "value" to
+            #this roll in self.values[-1].
+            self.values[-1][roll]=value
+
+        #For any rolls for which point values have not yet
+        #been specified in self.values[-1], give them point
+        #values of 0.
+        for roll in rolls(self.n_dice,self.n_faces):
+            if roll not in self.values[-1].keys():
+                self.values[-1][roll]=0.
+
+    
 
 def parse_int(n,name,lower=None,upper=None):
     """
