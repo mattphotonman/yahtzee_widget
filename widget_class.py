@@ -36,7 +36,12 @@ class Widget:
         self.n_faces=parse_int(n_faces,"n_faces",1)
         self.n_rolls=parse_int(n_rolls,"n_rolls",1)
 
-        self.init_values_strategy()
+        self.values=[]
+        for i in range(self.n_rolls):
+            self.values.append({})
+        self.strategy=[]
+        for i in range(self.n_rolls-1):
+            self.strategy.append({})
         
         if type(points)==str:
             self.parse_points_str(points)
@@ -46,13 +51,6 @@ class Widget:
             print >> sys.stderr, "Error in Widget.__init__: points must be a string or dictionary."
             exit()
 
-    def init_values_strategy(self):
-        """Initialize self.values and self.strategy"""
-        self.values=[]
-        self.strategy=[]
-        pass
-        
-    
     def parse_points_str(self,points):
         self.points=[]
         pass
