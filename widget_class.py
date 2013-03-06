@@ -2,10 +2,17 @@
 """
 Class for Yahtzee widget, and related functions.
 """
+
+#-----------------------                                                        
+#Imports                                                                        
+#-----------------------
 from numpy import *
 import sys
 from collections import Counter
 
+#-----------------------                                                        
+#Classes                                                                        
+#-----------------------
 class Widget:
     """
     Allows you to specify points for each roll at the end
@@ -116,6 +123,7 @@ class Widget:
         #statement to create points_dict for each combination.
         points_dict={}
 
+        #Begin big if statement
         #-----------------------------------------------------
         if combo=='three of a kind' or combo=='three of a kind weighted':
             for roll in rolls(self.n_dice,self.n_faces):
@@ -288,9 +296,9 @@ class Widget:
                     points_dict[roll]=float(c[num]*num)
 
         #-----------------------------------------------------
-        #Big if statement to create points_dict for each
-        #combination is finished.  Now pass points_dict
-        #to self.parse_points_dict.
+        #End of big if statement to create points_dict for
+        #each combination.  Now pass points_dict to
+        #self.parse_points_dict.
         self.parse_points_dict(points_dict)
 
     def parse_points_dict(self,points):
@@ -352,6 +360,10 @@ class Widget:
     def compute_strategy(self):
         pass
 
+
+#-----------------------                                                        
+#Functions                                                                      
+#-----------------------
 
 def parse_int(n,name,lower=None,upper=None):
     """
