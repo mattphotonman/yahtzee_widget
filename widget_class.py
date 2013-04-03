@@ -49,7 +49,7 @@ class Widget:
         #The elements of the list correspond to successive
         #rolls, and they are dictionaries giving the
         #expected number of points for each roll at that
-        #turn.self.values[-1] is therefore the dictionary
+        #turn. self.values[-1] is therefore the dictionary
         #input by the user via the "points" argument to
         #__init__, specifying the point values of each
         #possible roll after the last turn.  The keys of
@@ -358,7 +358,21 @@ class Widget:
                 self.values[-1][roll]=0.
 
     def compute_strategy(self):
-        pass
+        """
+        Compute which dice to keep for a given roll at a given
+        turn (self.strategy), and the expected number of points
+        after a given roll (self.values).
+        """
+        for turn in range(self.n_rolls-2,-1,-1):
+            #For each possible set of kept dice at this turn,
+            #calculate the expected value of the points you'll
+            #get after you roll (i.e. at the beginning of the
+            #next turn).  Number of kept dice can be from 1
+            #to self.n_dice-1.  For self.n_dice kept dice, can
+            #read off the "expected" values from self.values[turn+1].
+            expected_pts={}
+            for n_kept in range(1,self.n_dice):
+                
 
 
 #-----------------------                                                        
