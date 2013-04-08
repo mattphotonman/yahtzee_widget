@@ -62,7 +62,7 @@ class Widget:
             self.values.append({})
 
         #self.strategy is a list of n_rolls-1 dictionaries.
-        #The elements of list correspond to successive rolls
+        #The elements of the list correspond to successive rolls
         #(except the last one), and they are dictionaries
         #that tell which numbers to keep (and not re-roll)
         #for each possible roll on that turn.  Thus the keys
@@ -367,11 +367,54 @@ class Widget:
             #For each possible set of kept dice at this turn,
             #calculate the expected value of the points you'll
             #get after you roll (i.e. at the beginning of the
-            #next turn).  Number of kept dice can be from 1
-            #to self.n_dice-1.  For self.n_dice kept dice, can
-            #read off the "expected" values from self.values[turn+1].
+            #next turn).  Number of kept dice can be from 0
+            #to self.n_dice.  (For self.n_dice kept dice, can
+            #read off the "expected" values from self.values[turn+1].)
+            #Store this in the dictionary "expected_pts", where
+            #the keys are the values of the dice kept and the values
+            #are the expected number of points after rolling.
             expected_pts={}
-            for n_kept in range(1,self.n_dice):
+            for n_kept in range(0,self.n_dice+1):
+                for kept in rolls(n_kept,self.n_faces):
+                    tot=0
+                    denom=0
+                    for rolled in rolls(self.n_dice-n_kept,self.n_faces):
+                        roll=tuple(sort(kept+rolled))
+                        tot+=multiplicity(roll)*self.values[turn+1][roll]
+                        denom+=multiplicity(roll)
+                    expected_pts[kept]=float(tot)/float(denom)
+            #Want to sort expected_pts by values so that it
+            #is easier to find maxima.  (Sort in reverse order
+            #so that max value is first.)
+            expected_pts_sorted=[(key,expected_pts[key]) for key in sorted(expected_pts.keys(),key=lambda k:expected_pts[k],reverse=True)]
+            #expected_pts_sorted is a list of (key,value) pairs
+            #from expected_pts that are sorted by value from max
+            #value to min value.
+            
+            
+            #Now go through all possible rolls for this turn,
+            #see which set(s) of dice are the optimal ones to keep,
+            #(in that they lead to the highest expected number of
+            #points), and record the sets in self.strategy[turn],
+            #and the expected number of points in self.values[turn].
+            for roll in rolls(self.n_dice,self.n_faces):
+                #Run over expected_pts_sorted, and find the first
+                #(kept,value) pair where kept is a possible set of
+                #dice to keep from this roll, (in other words, kept
+                #is a 'subroll' of roll).  There must exist at least
+                #one because () is one of the 'kept' values in
+                #expected_pts_sorted, and () is a subroll of everything.
+                self.values[turn][roll]=None
+                self.strategy[turn][roll]=[]
+                for kept, value in expected_pts_sorted:
+                    if subroll(kept,roll):
+                        if self.values[turn][roll]==None:
+                            self.values[turn][roll]=value
+                            self.strategy[turn][roll].append(kept)
+                        elif value==self.values[turn][roll]:
+                            self.strategy[turn][roll].append(kept)
+                        else:
+                            break
                 
 
 
@@ -422,3 +465,26 @@ def rolls(n_dice,upper,lower=1):
             for rest_die in rolls(n_dice-1,upper,first_die):
                 yield (first_die,)+rest_die
 
+def multiplicity(roll):
+    """
+    Returns the number of ways you can get a given roll,
+    (i.e. treating the dice as distinguishable).
+    """
+    pass
+
+def subroll(sr,roll):
+    """
+    Returns True if sr is a subroll of roll, and False
+    if it isn't.  A subroll is a set of dice values that
+    can be taken out of roll.  For example if
+    roll=(1,1,2,3,3), then (1,2,3,3) is a subroll of roll,
+    but (1,2,2,3) and (1,5) are not.
+    """
+    r_list=list(roll)
+    sr_list=list(sr)
+    for d in sr_list:
+        try:
+            r_list.pop(r_list.index(d))
+        except ValueError:
+            return False
+    return True
