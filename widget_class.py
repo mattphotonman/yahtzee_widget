@@ -398,24 +398,53 @@ class Widget:
             #points), and record the sets in self.strategy[turn],
             #and the expected number of points in self.values[turn].
             for roll in rolls(self.n_dice,self.n_faces):
-                #Run over expected_pts_sorted, and find the first
-                #(kept,value) pair where kept is a possible set of
-                #dice to keep from this roll, (in other words, kept
-                #is a 'subroll' of roll).  There must exist at least
-                #one because () is one of the 'kept' values in
-                #expected_pts_sorted, and () is a subroll of everything.
+                #First set self.values[turn][roll] to None, and
+                #self.strategy[turn][roll] to [], so that we know
+                #that we haven't yet found the max value yet.
                 self.values[turn][roll]=None
                 self.strategy[turn][roll]=[]
+                #Now we go through the (kept,value) pairs in
+                #expected_pts_sorted in order.
                 for kept, value in expected_pts_sorted:
+                    #We can ignore 'kept' if it is not a possible
+                    #set of dice to keep from this roll, (e.g.
+                    #if kept=(1,2,3) and roll=(1,2,4,5,6), then
+                    #it's not possible to keep 'kept' from this
+                    #roll).  Test whether we continue to examine
+                    #'kept' in the following if statement:
                     if subroll(kept,roll):
+                        #Is this the first 'kept' we have encountered
+                        #that it is possible to keep from 'roll'?
                         if self.values[turn][roll]==None:
+                            #Yes, thus value is the max possible
+                            #value we can get since expected_pts_sorted
+                            #is sorted.  Therefore record it in
+                            #self.values[turn][roll], (and also this will
+                            #stop us from reaching this branch of the
+                            #if statement in the future), and record
+                            #'kept' as one possible optimal strategy
+                            #in self.strategy[turn][roll].
                             self.values[turn][roll]=value
                             self.strategy[turn][roll].append(kept)
                         elif value==self.values[turn][roll]:
+                            #No, but this 'kept' has the same expectation
+                            #value of points as the optimal one we already
+                            #found.  Thus add this 'kept' to
+                            #self.strategy[turn][roll] as another possible
+                            #optimal strategy.
                             self.strategy[turn][roll].append(kept)
                         else:
+                            #No, and in fact this value of 'kept' has a
+                            #smaller number of expected points than the
+                            #optimal one, thus we can end the for loop
+                            #since there will be no more optimal strategies.
                             break
-                
+                    #If we have a value recorded for self.values[turn][roll],
+                    #we can check if the current 'value' is less than it, in
+                    #which case we can break out of the for loop right away,
+                    #even if 'kept' is not a possible keep for this roll.
+                    if self.values[turn][roll]!=None and value<self.values[turn][roll]:
+                        break
 
 
 #-----------------------                                                        
