@@ -464,6 +464,36 @@ class Widget:
             denom+=mult
         self.expected=float(self.expected)/float(denom)
 
+    def advise(self,turn,roll):
+        """
+        Gives you the optimal strategy and expected number
+        of points given a roll on a given turn.  This is
+        just a nicer way to display self.strategy[turn][roll]
+        and self.values[turn][roll].
+        """
+        #Let's assume the user gives turn numbers starting
+        #at 1 rather than 0.
+        turn=parse_int(turn,"turn",1,self.n_rolls)-1
+
+        #Parse roll
+        r=tuple(sort(roll))
+        if len(r)!=self.n_dice:
+            print >> sys.stderr, "Error in Widget.advise: roll must consist of", self.n_dice, "dice."
+            exit()
+        if r not in self.values[0].keys():
+            print >> sys.stderr, "Error in Widget.advise:", roll, "not a valid roll."
+            exit()
+
+        #Print the optimal strategy
+        if turn==self.n_rolls-1:
+            print "Score:", self.values[turn][r]
+        else:
+            print "Possible dice to keep:"
+            for keep in self.strategy[turn][r]:
+                print keep
+            print ""
+            print "Expected number of points:", self.values[turn][r]
+
 
 #-----------------------                                                        
 #Functions                                                                      
