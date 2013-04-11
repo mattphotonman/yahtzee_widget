@@ -448,6 +448,18 @@ class Widget:
                     if self.values[turn][roll]!=None and value<self.values[turn][roll]:
                         break
 
+        #We have now computed the optimal strategy and expectation
+        #values for each turn.  The last thing we want to compute
+        #is the a priori expected number of points, i.e. the average
+        #over all possible rolls of self.values[0][roll].
+        self.expected=0
+        denom=0
+        for roll in rolls(self.n_dice,self.n_faces):
+            mult=multiplicity(roll)
+            self.expected+=mult*self.values[0][roll]
+            denom+=mult
+        self.expected=float(self.expected)/float(denom)
+
 
 #-----------------------                                                        
 #Functions                                                                      
@@ -456,7 +468,8 @@ class Widget:
 def parse_int(n,name,lower=None,upper=None):
     """
     Checks that n is a type int, and that it is in
-    the bounds [lower,upper] if provided.
+    the bounds [lower,upper] if provided.  Return n
+    if it meets these conditions.
     """
     if type(n)!=int:
         print >> sys.stderr, "Error:", name, "not type int."
@@ -469,6 +482,8 @@ def parse_int(n,name,lower=None,upper=None):
     if upper!=None and n>upper:
         print >> sys.stderr, "Error:", name, "must be <=", upper
         exit()
+
+    return n
 
 def rolls(n_dice,upper,lower=1):
     """
