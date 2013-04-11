@@ -381,7 +381,11 @@ class Widget:
                     denom=0
                     for rolled in rolls(self.n_dice-n_kept,self.n_faces):
                         roll=tuple(sort(kept+rolled))
-                        mult=multiplicity(roll)
+                        mult=multiplicity(rolled)
+                        #Note that it's the probability of getting the values
+                        #in 'rolled' that we care about, since we have already
+                        #obtained the values in 'kept' at this turn.  Thus
+                        #we used multiplicity(rolled) and not multiplicity(roll).
                         tot+=mult*self.values[turn+1][roll]
                         denom+=mult
                     expected_pts[kept]=float(tot)/float(denom)
