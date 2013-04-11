@@ -9,6 +9,7 @@ Class for Yahtzee widget, and related functions.
 from numpy import *
 import sys
 from collections import Counter
+from math import factorial
 
 #-----------------------                                                        
 #Classes                                                                        
@@ -380,8 +381,9 @@ class Widget:
                     denom=0
                     for rolled in rolls(self.n_dice-n_kept,self.n_faces):
                         roll=tuple(sort(kept+rolled))
-                        tot+=multiplicity(roll)*self.values[turn+1][roll]
-                        denom+=multiplicity(roll)
+                        mult=multiplicity(roll)
+                        tot+=mult*self.values[turn+1][roll]
+                        denom+=mult
                     expected_pts[kept]=float(tot)/float(denom)
             #Want to sort expected_pts by values so that it
             #is easier to find maxima.  (Sort in reverse order
@@ -499,7 +501,8 @@ def multiplicity(roll):
     Returns the number of ways you can get a given roll,
     (i.e. treating the dice as distinguishable).
     """
-    pass
+    c=Counter(roll)
+    return factorial(len(roll))/product([factorial(n) for n in c.values()])
 
 def subroll(sr,roll):
     """
