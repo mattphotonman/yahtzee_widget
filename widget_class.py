@@ -569,3 +569,65 @@ def subroll(sr,roll):
         except ValueError:
             return False
     return True
+
+
+#-----------------------                                                        
+#Test Cases
+#-----------------------
+
+if __name__ == "__main__":
+    #YAHTZEE
+    w=Widget('yahtzee')
+    print "Probability of getting a yahtzee =", w.expected
+    for i in range(1,7):
+        for turn in range(3):
+            assert(w.values[turn][(i,)*5]==1.0)
+    assert(w.values[2][(1,1,2,2,3)]==0.0)
+    assert(w.values[2][(1,2,3,5,6)]==0.0)
+    assert(w.values[2][(3,4,4,5,6)]==0.0)
+    for i in range(2,7):
+        assert(w.values[1][(1,1,1,1,i)]==1./6.)
+    for i in range(5,7):
+        assert(w.values[1][(4,4,4,4,i)]==1./6.)
+    assert(w.values[1][(3,3,3,5,5)]==1./36.)
+    assert(w.values[1][(2,3,4,4,4)]==1./36.)
+    assert(w.values[1][(2,2,5,5,6)]==1./6.**3)
+    assert(w.values[1][(1,2,3,3,5)]==1./6.**3)
+    assert(w.values[1][(1,2,3,4,5)]==1./6.**4)
+    assert(w.values[1][(1,2,4,5,6)]==1./6.**4)
+
+    #Keep all for five of a kind
+    assert(w.strategy[1][(1,)*5]==[(1,)*5])
+    assert(w.strategy[1][(5,)*5]==[(5,)*5])
+    assert(w.strategy[0][(1,)*5]==[(1,)*5])
+    assert(w.strategy[0][(5,)*5]==[(5,)*5])
+
+    #Keep four for four of a kind
+    assert(w.strategy[1][(2,)*4+(3,)]==[(2,)*4])
+    assert(w.strategy[1][(2,)+(5,)*4]==[(5,)*4])
+    assert(w.strategy[0][(2,)*4+(3,)]==[(2,)*4])
+    assert(w.strategy[0][(2,)+(5,)*4]==[(5,)*4])
+
+    #Keep three for three of a kind
+    assert(w.strategy[1][(1,2,3,3,3)]==[(3,3,3)])
+    assert(w.strategy[1][(2,2,6,6,6)]==[(6,6,6)])
+    assert(w.strategy[1][(4,4,4,5,6)]==[(4,4,4)])
+    assert(w.strategy[0][(1,2,3,3,3)]==[(3,3,3)])
+    assert(w.strategy[0][(2,2,6,6,6)]==[(6,6,6)])
+    assert(w.strategy[0][(4,4,4,5,6)]==[(4,4,4)])
+
+    #Keep any two for two of a kind
+    assert(w.strategy[1][(2,2,3,5,6)]==[(2,2)])
+    assert(sorted(w.strategy[1][(1,1,4,4,5)])==sorted([(1,1),(4,4)]))
+    assert(sorted(w.strategy[1][(3,3,5,6,6)])==sorted([(3,3),(6,6)]))
+    assert(sorted(w.strategy[1][(1,2,2,4,4)])==sorted([(2,2),(4,4)]))
+    assert(w.strategy[0][(2,2,3,5,6)]==[(2,2)])
+    assert(sorted(w.strategy[0][(1,1,4,4,5)])==sorted([(1,1),(4,4)]))
+    assert(sorted(w.strategy[0][(3,3,5,6,6)])==sorted([(3,3),(6,6)]))
+    assert(sorted(w.strategy[0][(1,2,2,4,4)])==sorted([(2,2),(4,4)]))
+
+    #Keep any one, or re-roll all for all dice different
+    assert(sorted(w.strategy[1][(1,2,3,4,5)])==sorted([(),(1,),(2,),(3,),(4,),(5,)]))
+    assert(sorted(w.strategy[1][(1,2,3,5,6)])==sorted([(),(1,),(2,),(3,),(5,),(6,)]))
+    assert(sorted(w.strategy[0][(1,2,3,4,5)])==sorted([(),(1,),(2,),(3,),(4,),(5,)]))
+    assert(sorted(w.strategy[0][(1,2,3,5,6)])==sorted([(),(1,),(2,),(3,),(5,),(6,)]))
