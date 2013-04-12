@@ -377,18 +377,7 @@ class Widget:
             expected_pts={}
             for n_kept in range(0,self.n_dice+1):
                 for kept in rolls(n_kept,self.n_faces):
-                    tot=0
-                    denom=0
-                    for rolled in rolls(self.n_dice-n_kept,self.n_faces):
-                        roll=tuple(sort(kept+rolled))
-                        mult=multiplicity(rolled)
-                        #Note that it's the probability of getting the values
-                        #in 'rolled' that we care about, since we have already
-                        #obtained the values in 'kept' at this turn.  Thus
-                        #we used multiplicity(rolled) and not multiplicity(roll).
-                        tot+=mult*self.values[turn+1][roll]
-                        denom+=mult
-                    expected_pts[kept]=float(tot)/float(denom)
+                    expected_pts[kept]=self.expected_given_kept(kept,turn)
             #Want to sort expected_pts by values so that it
             #is easier to find maxima.  (Sort in reverse order
             #so that max value is first.)
@@ -464,12 +453,35 @@ class Widget:
             denom+=mult
         self.expected=float(self.expected)/float(denom)
 
+    def expected_given_kept(self,kept,turn):
+        """
+        Calculate the expected number of points if you keep
+        dice 'kept' at turn 'turn', (given that you use optimal
+        strategy after that).
+        """
+        n_kept=len(kept)
+        tot=0
+        denom=0
+        for rolled in rolls(self.n_dice-n_kept,self.n_faces):
+            roll=tuple(sort(kept+rolled))
+            mult=multiplicity(rolled)
+            #Note that it's the probability of getting the values
+            #in 'rolled' that we care about, since we have already
+            #obtained the values in 'kept' at this turn.  Thus
+            #we used multiplicity(rolled) and not multiplicity(roll).
+            tot+=mult*self.values[turn+1][roll]
+            denom+=mult
+        return float(tot)/float(denom)
+
     def advise(self,turn,roll):
         """
         Gives you the optimal strategy and expected number
         of points given a roll on a given turn.  This is
         just a nicer way to display self.strategy[turn][roll]
         and self.values[turn][roll].
+        NOTE:  For the input here, we assume turn numbers
+        start at 1, and then subtract 1 before using it,
+        because this is a more 'user facing' function.
         """
         #Let's assume the user gives turn numbers starting
         #at 1 rather than 0.
