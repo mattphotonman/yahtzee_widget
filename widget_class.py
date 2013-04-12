@@ -139,7 +139,7 @@ class Widget:
                     else:
                         points_dict[roll]=float(sum(roll))
                 else:
-                    point_dict[roll]=0.
+                    points_dict[roll]=0.
             
         elif combo=='four of a kind' or combo=='four of a kind weighted':
             for roll in rolls(self.n_dice,self.n_faces):
@@ -154,7 +154,7 @@ class Widget:
                     else:
                         points_dict[roll]=float(sum(roll))
                 else:
-                    point_dict[roll]=0.
+                    points_dict[roll]=0.
             
         elif combo=='full house' or combo=='full house weighted':
             for roll in rolls(self.n_dice,self.n_faces):
