@@ -421,7 +421,7 @@ class Widget:
                             #in self.strategy[turn][roll].
                             self.values[turn][roll]=value
                             self.strategy[turn][roll].append(kept)
-                        elif value==self.values[turn][roll]:
+                        elif eql_float(value,self.values[turn][roll]):
                             #No, but this 'kept' has the same expectation
                             #value of points as the optimal one we already
                             #found.  Thus add this 'kept' to
@@ -438,7 +438,7 @@ class Widget:
                     #we can check if the current 'value' is less than it, in
                     #which case we can break out of the for loop right away,
                     #even if 'kept' is not a possible keep for this roll.
-                    if self.values[turn][roll]!=None and value<self.values[turn][roll]:
+                    if self.values[turn][roll]!=None and not eql_float(value,self.values[turn][roll]):
                         break
 
         #We have now computed the optimal strategy and expectation
@@ -581,6 +581,25 @@ def subroll(sr,roll):
         except ValueError:
             return False
     return True
+
+def eql_float(x,y):
+    """
+    Tests if x and y are equal within a relative
+    error of eps.
+    """
+    eps=1.E-10
+    #If both of the values are exactly 0, then they
+    #are equal.
+    if x==0 and y==0:
+        return True
+    #Otherwise, if they average to 0, then use relative
+    #error with respect to one of the values (doesn't
+    #matter which because x=-y in this case).
+    if x+y==0:
+        return float(abs(x-y))/float(abs(x))<eps
+    #Otherwise use relative error with respect to
+    #average.
+    return 2.*float(abs(x-y))/float(abs(x+y))<eps
 
 
 #-----------------------                                                        
