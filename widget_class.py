@@ -214,10 +214,13 @@ class Widget:
                 #
                 #which are the frequencies of the most and second
                 #most common number.  If freq1>2 then we definitely
-                #can't have a small straight.  If freq1=2 then we
-                #can use the fact that roll is sorted and test for
-                #case (ii) by checking if roll[-1]-roll[0]=n_dice-2.
-                #If freq1=1 then we can check for case(i) checking if
+                #can't have a small straight.  If freq1=2 and freq2=2,
+                #then this is not a small straight either.  If freq1=2,
+                #and freq2=1, then we can use the fact that roll is
+                #sorted and test for case (ii) by checking if
+                #roll[-1]-roll[0]=n_dice-2.  
+                #If freq1=1 then all dice show different values, and
+                #we can check for case(i) by checking if
                 #roll[-2]-roll[0]=n_dice-2 or roll[-1]-roll[1]=n_dice-2.
                 #
                 #n_dice<=2 must be treated separately; in this case
@@ -234,7 +237,7 @@ class Widget:
                     if freq1>2:
                         points_dict[roll]=0.
                     elif freq1==2:
-                        if roll[-1]-roll[0]==self.n_dice-2:
+                        if freq2==1 and roll[-1]-roll[0]==self.n_dice-2:
                             points_dict[roll]=1.
                         else:
                             points_dict[roll]=0.
