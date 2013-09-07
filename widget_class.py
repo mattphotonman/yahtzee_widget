@@ -12,6 +12,14 @@ from collections import Counter
 from math import factorial
 
 #-----------------------                                                        
+#Globals
+#-----------------------
+combos=['three of a kind','four of a kind','full house','small straight','large straight','yahtzee','chance','ones','twos','threes','fours','fives','sixes']
+combos_weighted=[]
+for combo in combos:
+    combos_weighted.append(combo+' weighted')
+
+#-----------------------                                                        
 #Classes                                                                        
 #-----------------------
 class Widget:
@@ -102,11 +110,6 @@ class Widget:
         number of points you would score with that roll, rather
         than just 1.
         """
-        combos=['three of a kind','four of a kind','full house','small straight','large straight','yahtzee','chance','ones','twos','threes','fours','fives','sixes']
-        combos_weighted=[]
-        for combo in combos:
-            combos_weighted.append(combo+' weighted')
-
         numbers=['ones','twos','threes','fours','fives','sixes']
         numbers_weighted=[]
         for combo in numbers:
